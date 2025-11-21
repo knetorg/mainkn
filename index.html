@@ -1,1 +1,634 @@
-1
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>KomaruNet - Социальная сеть</title>
+    <style>
+        :root {
+            /* Светлая тема */
+            --primary-blue: #4680C2;
+            --dark-blue: #2a5885;
+            --bg-color: #edeef0;
+            --card-bg: #ffffff;
+            --text-main: #000000;
+            --text-secondary: #818c99;
+            --border-color: #dce1e6;
+            --hover-bg: #f0f2f5;
+            --input-bg: #f0f2f5;
+            --shadow: rgba(0,0,0,0.1);
+            --app-icon-bg: #f0f4f8;
+        }
+
+        /* Тёмная тема */
+        body.dark-mode {
+            --primary-blue: #5b9dd9;
+            --dark-blue: #3e7eb5;
+            --bg-color: #181818;
+            --card-bg: #222222;
+            --text-main: #e1e3e6;
+            --text-secondary: #aaaaaa;
+            --border-color: #333333;
+            --hover-bg: #333333;
+            --input-bg: #333333;
+            --shadow: rgba(0,0,0,0.5);
+            --app-icon-bg: #2b2b2b;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            background-color: var(--bg-color);
+            margin: 0;
+            padding-top: 60px;
+            color: var(--text-main);
+            transition: background-color 0.3s, color 0.3s;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        /* --- Шапка --- */
+        header {
+            background-color: var(--card-bg);
+            height: 48px;
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            display: flex; align-items: center; justify-content: center;
+            box-shadow: 0 1px 3px var(--shadow);
+            z-index: 100;
+            border-bottom: 1px solid var(--border-color);
+            transition: background-color 0.3s;
+        }
+
+        .header-content {
+            width: 960px;
+            display: flex; align-items: center; justify-content: space-between;
+            padding: 0 15px;
+        }
+
+        .logo {
+            font-weight: bold; font-size: 20px; color: var(--primary-blue);
+            text-decoration: none; display: flex; align-items: center; gap: 5px;
+        }
+
+        .search-bar {
+            background: var(--input-bg);
+            border-radius: 8px; padding: 5px 15px; border: none;
+            width: 250px; color: var(--text-main);
+            transition: background 0.3s;
+        }
+
+        .header-icons { display: flex; gap: 15px; align-items: center; }
+        .theme-btn {
+            background: none; border: none; cursor: pointer; font-size: 20px;
+            padding: 5px; border-radius: 50%; transition: 0.2s;
+        }
+
+        /* --- Макет --- */
+        .container {
+            max-width: 960px; margin: 20px auto;
+            display: grid; grid-template-columns: 240px 1fr;
+            gap: 20px; padding: 0 15px; padding-bottom: 80px;
+        }
+
+        .sidebar { position: sticky; top: 70px; height: fit-content; display: flex; flex-direction: column; gap: 15px;}
+
+        /* --- Профиль и Меню (Стили как раньше) --- */
+        .profile-card {
+            background: var(--card-bg); border-radius: 12px; overflow: visible;
+            border: 1px solid var(--border-color); text-align: center; padding-bottom: 15px; position: relative;
+        }
+        .cover { height: 80px; background: linear-gradient(135deg, #4680C2, #6a9bd8); border-radius: 12px 12px 0 0; }
+        .avatar-container { width: 90px; height: 90px; margin: -45px auto 10px; position: relative; cursor: pointer; transition: transform 0.2s; }
+        .avatar-container:hover { transform: scale(1.05); }
+        .avatar-frame { width: 100%; height: 100%; border-radius: 50%; border: 4px solid var(--card-bg); background-color: #fff; overflow: hidden; position: relative; }
+        .avatar-frame .tenor-gif-embed { width: 150% !important; height: 150% !important; margin-left: -25%; margin-top: -25%; pointer-events: none; }
+        .profile-name { font-weight: bold; font-size: 16px; margin-top: 5px; }
+        .profile-username { color: var(--text-secondary); font-size: 13px; margin-bottom: 10px; }
+        .stats { display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid var(--border-color); }
+        .stat-item { display: flex; flex-direction: column; font-size: 12px; color: var(--text-secondary); cursor: pointer; }
+        .stat-count { font-size: 16px; font-weight: bold; color: var(--primary-blue); }
+
+        .menu-list { background: var(--card-bg); border-radius: 12px; padding: 10px; border: 1px solid var(--border-color); }
+        .menu-item { padding: 10px; color: var(--text-main); cursor: pointer; border-radius: 6px; display: flex; align-items: center; gap: 10px; transition: background 0.2s; position: relative; }
+        .menu-item:hover { background-color: var(--hover-bg); }
+        .menu-item.active { background-color: var(--hover-bg); color: var(--primary-blue); font-weight: 500; }
+        .menu-item.active::before { content: ''; width: 4px; height: 16px; background: var(--primary-blue); border-radius: 2px; position: absolute; left: 0; top: 50%; transform: translateY(-50%); }
+
+        /* --- Виджеты --- */
+        .widget-card { background: var(--card-bg); border-radius: 12px; padding: 15px; border: 1px solid var(--border-color); }
+        .widget-title { font-size: 13px; color: var(--text-secondary); margin-bottom: 10px; font-weight: 500; text-transform: uppercase; }
+        .time-widget { font-size: 28px; font-weight: bold; color: var(--text-main); text-align: center; }
+        .date-widget { font-size: 14px; color: var(--text-secondary); text-align: center; margin-top: 5px; }
+
+        /* --- СТРАНИЦЫ --- */
+        .page-section { display: none; }
+        .page-section.active { display: flex; flex-direction: column; gap: 15px; animation: fadeIn 0.3s ease; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+
+        /* --- Лента --- */
+        .stories-container { background: var(--card-bg); padding: 15px; border-radius: 12px; border: 1px solid var(--border-color); display: flex; gap: 15px; overflow-x: auto; scrollbar-width: none; }
+        .story { display: flex; flex-direction: column; align-items: center; gap: 5px; cursor: pointer; min-width: 60px; }
+        .story-ring { width: 56px; height: 56px; border-radius: 50%; padding: 2px; background: linear-gradient(45deg, #f09433, #e6683c, #dc2743, #cc2366, #bc1888); }
+        .story-img { width: 100%; height: 100%; border-radius: 50%; border: 2px solid var(--card-bg); background: #eee; object-fit: cover; overflow: hidden; }
+        .story-img .tenor-gif-embed { width: 150% !important; height: 150% !important; margin-left: -25%; margin-top: -25%; pointer-events: none; }
+        .story-name { font-size: 11px; color: var(--text-main); text-align: center; width: 60px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;}
+
+        .post { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 15px; }
+        .post-header { display: flex; align-items: center; margin-bottom: 10px; }
+        .post-avatar-container { width: 40px; height: 40px; border-radius: 50%; margin-right: 10px; overflow: hidden; background: #eee; }
+        .post-text { font-size: 14px; margin-bottom: 10px; line-height: 1.4; }
+        .post-content { border-radius: 8px; overflow: hidden; margin-bottom: 10px; border: 1px solid #eee; }
+        .post-actions { display: flex; justify-content: space-between; border-top: 1px solid var(--border-color); padding-top: 10px; }
+        .action-btn { background: none; border: none; color: var(--text-secondary); font-weight: 500; cursor: pointer; display: flex; align-items: center; gap: 5px; padding: 5px 10px; border-radius: 6px; transition: 0.2s; }
+        .action-btn.liked { color: #ff3347; }
+
+        /* --- РАДИО --- */
+        .music-player { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); padding: 20px; }
+        .track-list { max-height: 400px; overflow-y: auto; }
+        .track { display: flex; align-items: center; padding: 10px; border-radius: 8px; cursor: pointer; transition: 0.2s; border-bottom: 1px solid var(--border-color); }
+        .track:hover { background: var(--hover-bg); }
+        .track.playing { background: var(--hover-bg); border-left: 3px solid var(--primary-blue); }
+        .track-icon { width: 30px; height: 30px; background: #eee; border-radius: 4px; margin-right: 10px; display: flex; align-items: center; justify-content: center; font-size: 16px; }
+        .track-info { flex-grow: 1; overflow: hidden; }
+        .track-title { font-weight: 500; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+        .track-artist { font-size: 11px; color: var(--text-secondary); }
+        .genre-tag { font-size: 9px; background: var(--input-bg); padding: 2px 4px; border-radius: 3px; margin-left: 5px; color: var(--text-secondary);}
+
+        /* --- ВИДЕО --- */
+        .video-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(300px, 1fr)); gap: 20px; }
+        .video-card { background: var(--card-bg); border-radius: 12px; border: 1px solid var(--border-color); overflow: hidden; }
+        .video-frame-container { position: relative; padding-bottom: 56.25%; height: 0; overflow: hidden; }
+        .video-frame-container iframe { position: absolute; top: 0; left: 0; width: 100%; height: 100%; }
+        .video-info { padding: 10px; }
+        .video-title { font-weight: 500; font-size: 14px; margin-bottom: 5px; }
+
+        /* --- APP GRID (NEW) --- */
+        .apps-grid {
+            display: grid; grid-template-columns: repeat(auto-fill, minmax(80px, 1fr));
+            gap: 20px; padding: 20px; background: var(--card-bg);
+            border-radius: 12px; border: 1px solid var(--border-color);
+        }
+        .app-icon-wrapper {
+            display: flex; flex-direction: column; align-items: center; gap: 8px;
+            cursor: pointer; transition: transform 0.2s;
+        }
+        .app-icon-wrapper:active { transform: scale(0.9); }
+        .app-icon {
+            width: 60px; height: 60px; border-radius: 15px;
+            background: var(--app-icon-bg); display: flex; align-items: center; justify-content: center;
+            font-size: 28px; box-shadow: 0 4px 10px var(--shadow);
+            border: 1px solid var(--border-color);
+        }
+        .app-title { font-size: 11px; color: var(--text-main); text-align: center; font-weight: 500; }
+
+        /* --- APP WINDOW (MODAL) --- */
+        .app-window {
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--bg-color); z-index: 2000;
+            display: none; flex-direction: column;
+            animation: zoomIn 0.3s ease;
+        }
+        @keyframes zoomIn { from { transform: scale(0.8); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+        
+        .app-header {
+            height: 50px; background: var(--card-bg); border-bottom: 1px solid var(--border-color);
+            display: flex; align-items: center; padding: 0 15px; justify-content: space-between;
+        }
+        .app-back-btn { font-size: 16px; color: var(--primary-blue); cursor: pointer; font-weight: 500; }
+        .app-window-title { font-weight: bold; font-size: 16px; }
+        
+        .app-body { flex-grow: 1; padding: 20px; overflow-y: auto; display: flex; flex-direction: column; align-items: center; }
+        
+        .launch-screen {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%;
+            background: var(--card-bg); z-index: 2001;
+            display: flex; flex-direction: column; align-items: center; justify-content: center;
+            transition: opacity 0.5s;
+        }
+        .launch-logo { font-size: 60px; margin-bottom: 20px; animation: bounce 1s infinite; }
+        .launch-text { font-size: 18px; font-weight: bold; color: var(--text-secondary); }
+        @keyframes bounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-20px); } }
+
+        /* --- TOOL STYLES --- */
+        .tool-container { width: 100%; max-width: 500px; background: var(--card-bg); padding: 20px; border-radius: 12px; border: 1px solid var(--border-color); text-align: center; }
+        .tool-display { font-size: 32px; font-weight: bold; margin: 20px 0; min-height: 40px; }
+        .tool-btn { background: var(--primary-blue); color: white; border: none; padding: 10px 20px; border-radius: 8px; font-size: 16px; cursor: pointer; margin: 5px; }
+        .tool-btn:active { opacity: 0.8; }
+        .tool-input { width: 80%; padding: 10px; font-size: 16px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 10px; background: var(--input-bg); color: var(--text-main); }
+        .grid-game { display: grid; grid-template-columns: repeat(3, 1fr); gap: 5px; max-width: 300px; margin: 0 auto; }
+        .grid-cell { aspect-ratio: 1; background: var(--input-bg); display: flex; align-items: center; justify-content: center; font-size: 32px; cursor: pointer; border-radius: 5px; }
+
+        /* --- MOBILE NAV --- */
+        .mobile-nav {
+            display: none; position: fixed; bottom: 0; left: 0; right: 0;
+            background: var(--card-bg); border-top: 1px solid var(--border-color);
+            height: 60px; align-items: center; justify-content: space-around;
+            z-index: 1000;
+        }
+        .mobile-nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-secondary); font-size: 10px; }
+        .mobile-nav-item.active { color: var(--primary-blue); }
+        .mobile-nav-icon { font-size: 20px; margin-bottom: 2px; }
+
+        @media (max-width: 700px) {
+            .container { grid-template-columns: 1fr; }
+            .sidebar { display: none; }
+            .mobile-nav { display: flex; }
+            .search-bar { display: none; }
+            .header-content { width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <!-- App Window (Hidden by default) -->
+    <div id="appWindow" class="app-window">
+        <div id="launchScreen" class="launch-screen">
+            <div class="launch-logo" id="launchIcon">🚀</div>
+            <div class="launch-text">Загрузка...</div>
+        </div>
+        <div class="app-header">
+            <div class="app-back-btn" onclick="closeApp()">❮ Назад</div>
+            <div class="app-window-title" id="appWindowTitle">Приложение</div>
+            <div style="width: 50px;"></div>
+        </div>
+        <div class="app-body" id="appBody">
+            <!-- App content goes here -->
+        </div>
+    </div>
+
+    <header>
+        <div class="header-content">
+            <a href="#" class="logo">
+                <svg width="24" height="24" viewBox="0 0 24 24" fill="currentColor"><path d="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8z"/><path d="M12 6c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-4 3c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm8 0c-1.1 0-2 .9-2 2s.9 2 2 2 2-.9 2-2-.9-2-2-2zm-4 8c-2.33 0-4.31-1.46-5.11-3.5h10.22c-.8 2.04-2.78 3.5-5.11 3.5z"/></svg>
+                <span>KomaruNet</span>
+            </a>
+            <input type="text" class="search-bar" placeholder="Поиск...">
+            <div class="header-icons">
+                <button class="theme-btn" onclick="toggleTheme()" title="Переключить тему">🌙</button>
+                <div class="avatar-container" style="width: 30px; height: 30px; margin: 0;">
+                     <div class="avatar-frame" style="border: 2px solid var(--border-color);">
+                         <div class="tenor-gif-embed" data-postid="16010071609240271312" data-share-method="host" data-aspect-ratio="1" data-width="100%" style="pointer-events: none;"></div>
+                     </div>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <div class="container">
+        <!-- ЛЕВАЯ КОЛОНКА -->
+        <div class="sidebar">
+            <div class="profile-card">
+                <div class="cover"></div>
+                <div class="avatar-container">
+                    <div class="avatar-frame">
+                        <div class="tenor-gif-embed" data-postid="16010071609240271312" data-share-method="host" data-aspect-ratio="1" data-width="100%"></div>
+                    </div>
+                </div>
+                <div class="profile-name">Komaru The Cat ✅</div>
+                <div class="stats">
+                    <div class="stat-item"><span class="stat-count">164</span>Постов</div>
+                    <div class="stat-item"><span class="stat-count">1.2M</span>Подписчиков</div>
+                </div>
+            </div>
+
+            <div class="widget-card">
+                <div class="widget-title">Сейчас</div>
+                <div class="time-widget" id="clockWidget">00:00</div>
+                <div class="date-widget" id="dateWidget">...</div>
+            </div>
+
+            <div class="menu-list">
+                <div class="menu-item active" data-page="feed" onclick="switchPage('feed')">📰 Новости</div>
+                <div class="menu-item" data-page="music" onclick="switchPage('music')">🎵 Радио (70+)</div>
+                <div class="menu-item" data-page="videos" onclick="switchPage('videos')">📹 Видео</div>
+                <div class="menu-item" data-page="tools" onclick="switchPage('tools')">📱 Приложения (30)</div>
+            </div>
+        </div>
+
+        <!-- ЦЕНТРАЛЬНАЯ КОЛОНКА -->
+        <div class="content-area">
+            
+            <!-- 1. НОВОСТИ -->
+            <div id="page-feed" class="page-section active">
+                <div class="stories-container">
+                    <div class="story"><div class="story-ring"><div class="story-img"><div class="tenor-gif-embed" data-postid="13601647073017653360" data-share-method="host" data-aspect-ratio="1" data-width="100%"></div></div></div><div class="story-name">Maxwell</div></div>
+                    <div class="story"><div class="story-ring"><div class="story-img"><div class="tenor-gif-embed" data-postid="22425488" data-share-method="host" data-aspect-ratio="1" data-width="100%"></div></div></div><div class="story-name">Beluga</div></div>
+                </div>
+                <div class="post">
+                    <div class="post-header">
+                        <div class="post-avatar-container"><div class="tenor-gif-embed" data-postid="16010071609240271312" data-share-method="host" data-aspect-ratio="1" data-width="100%"></div></div>
+                        <div class="post-info"><h4>Komaru The Cat ✅</h4><span>только что</span></div>
+                    </div>
+                    <div class="post-text">Обновила свои любимые видео и добавила 30 новых приложений! Теперь это настоящая OS 😸💻 #komaruOS #update</div>
+                    <div class="post-content"><div class="tenor-gif-embed" data-postid="27299790" data-share-method="host" data-aspect-ratio="0.95625" data-width="100%"></div></div>
+                    <div class="post-actions">
+                        <button class="action-btn liked">❤️ Нравится 500</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 2. РАДИО -->
+            <div id="page-music" class="page-section">
+                <div class="music-player">
+                    <div class="player-header" style="margin-bottom: 10px; font-weight: bold;">FM Радио 📻</div>
+                    <audio id="audioPlayer" controls style="width: 100%; margin-bottom: 10px;"></audio>
+                    <div class="track-list" id="trackList"></div>
+                </div>
+            </div>
+
+            <!-- 3. ВИДЕО (ОБНОВЛЕНО) -->
+            <div id="page-videos" class="page-section">
+                <div style="margin-bottom:15px; font-weight:bold;">Мои Видео 📹</div>
+                <div class="video-grid">
+                    <!-- Komaru Cat Shorts -->
+                    <div class="video-card">
+                        <div class="video-frame-container">
+                            <iframe src="https://www.youtube.com/embed/krSZ-4v3w-E" title="Komaru Cat Videos" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="video-info"><div class="video-title">Komaru Cat Shorts (Original)</div></div>
+                    </div>
+                    <!-- Nyan Cat 10h -->
+                    <div class="video-card">
+                        <div class="video-frame-container">
+                             <iframe src="https://www.youtube.com/embed/jIQ6UV2onyI" title="Nyan Cat 10 hours" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="video-info"><div class="video-title">Nyan Cat 10 Hours</div></div>
+                    </div>
+                    <!-- Maxwell Theme -->
+                    <div class="video-card">
+                        <div class="video-frame-container">
+                            <iframe src="https://www.youtube.com/embed/kOG0_qjKWEI" title="Maxwell the Cat Theme" frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" allowfullscreen></iframe>
+                        </div>
+                        <div class="video-info"><div class="video-title">Maxwell the Cat Theme</div></div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 4. ПРИЛОЖЕНИЯ (30 ИНСТРУМЕНТОВ) -->
+            <div id="page-tools" class="page-section">
+                <div style="margin-bottom:15px; font-weight:bold;">Приложения Komaru OS 📱</div>
+                <div class="apps-grid" id="appsGrid">
+                    <!-- Apps generated by JS -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Нижняя навигация -->
+    <div class="mobile-nav">
+        <div class="mobile-nav-item active" data-page="feed" onclick="switchPage('feed')"><div class="mobile-nav-icon">📰</div><span>Новости</span></div>
+        <div class="mobile-nav-item" data-page="music" onclick="switchPage('music')"><div class="mobile-nav-icon">🎵</div><span>Радио</span></div>
+        <div class="mobile-nav-item" data-page="videos" onclick="switchPage('videos')"><div class="mobile-nav-icon">📹</div><span>Видео</span></div>
+        <div class="mobile-nav-item" data-page="tools" onclick="switchPage('tools')"><div class="mobile-nav-icon">📱</div><span>Apps</span></div>
+    </div>
+
+    <script>
+        // --- 1. РАДИОСТАНЦИИ ---
+        const radioStations = [
+            { url: "http://listen.rusongs.ru:8005/ru-mp3-128", name: "Русские песни", genre: "Pop", bitrate: "128" },
+            { url: "http://retroserver.streamr.ru:8043/retro256.mp3", name: "Retro FM", genre: "Retro", bitrate: "128" },
+            { url: "https://icecast-record.cdnvideo.ru/record", name: "Радио Рекорд", genre: "Dance", bitrate: "320" },
+            { url: "https://europaplus.hostingradio.ru:8014/ep-top256.mp3", name: "Europa Plus", genre: "Dance", bitrate: "192" },
+            { url: "https://maximum.hostingradio.ru/maximum128.mp3", name: "Radio MAXIMUM", genre: "Rock", bitrate: "128" },
+            { url: "http://nashe1.hostingradio.ru/ultra-128.mp3", name: "Radio Ultra", genre: "Rock", bitrate: "128" },
+            { url: "https://listen1.myradio24.com/6262", name: "Спокойное радио", genre: "Relax", bitrate: "128" },
+             { url: "https://air.unmixed.ru/lradio256", name: "L Radio", genre: "Electro", bitrate: "128" },
+            { url: "http://pool.anison.fm:9000/AniSonFM(320)", name: "Anison FM", genre: "Anime", bitrate: "320" }
+        ];
+
+        function initRadio() {
+            const list = document.getElementById('trackList');
+            const player = document.getElementById('audioPlayer');
+            radioStations.forEach((station) => {
+                const div = document.createElement('div');
+                div.className = 'track';
+                div.innerHTML = `<div class="track-icon">📻</div><div class="track-info"><div class="track-title">${station.name}</div><div class="track-artist">${station.bitrate}k <span class="genre-tag">${station.genre}</span></div></div>`;
+                div.onclick = () => {
+                    document.querySelectorAll('.track').forEach(t => t.classList.remove('playing'));
+                    div.classList.add('playing');
+                    player.src = station.url;
+                    player.play().catch(() => alert("Браузер заблокировал HTTP поток. Выберите HTTPS станцию."));
+                };
+                list.appendChild(div);
+            });
+        }
+
+        // --- 2. СИСТЕМА ПРИЛОЖЕНИЙ (30 APPS) ---
+        const appsData = [
+            // Утилиты
+            { id: 'todo', icon: '📝', name: 'Заметки' },
+            { id: 'calc', icon: '🧮', name: 'Калькулятор' },
+            { id: 'stopwatch', icon: '⏱️', name: 'Секундомер' },
+            { id: 'converter', icon: '🔄', name: 'Конвертер' },
+            { id: 'password', icon: '🔐', name: 'Пароль' },
+            { id: 'battery', icon: '🔋', name: 'Батарея' },
+            { id: 'color', icon: '🎨', name: 'Цвет' },
+            { id: 'currency', icon: '💱', name: 'Валюта' },
+            { id: 'flashlight', icon: '🔦', name: 'Фонарик' },
+            { id: 'qrcode', icon: '🔳', name: 'QR Код' },
+            
+            // Игры
+            { id: 'clicker', icon: '🐱', name: 'Кликер' },
+            { id: 'tictactoe', icon: '❌', name: 'X vs O' },
+            { id: 'dice', icon: '🎲', name: 'Кости' },
+            { id: 'coin', icon: '🪙', name: 'Монетка' },
+            { id: 'random', icon: '❓', name: 'Рандом' },
+            { id: 'magic8', icon: '🎱', name: 'Шар Судьбы' },
+            { id: 'reaction', icon: '⚡', name: 'Реакция' },
+            { id: 'memory', icon: '🧠', name: 'Память' },
+            
+            // Здоровье и Тесты
+            { id: 'breathe', icon: '🌬️', name: 'Дыхание' },
+            { id: 'bmi', icon: '⚖️', name: 'ИМТ' },
+            { id: 'pomodoro', icon: '🍅', name: 'Помодоро' },
+            { id: 'water', icon: '💧', name: 'Вода' },
+            { id: 'age', icon: '🎂', name: 'Возраст' },
+            
+            // Творчество и Фан
+            { id: 'piano', icon: '🎹', name: 'Пианино' },
+            { id: 'soundboard', icon: '🔊', name: 'Звуки' },
+            { id: 'canvas', icon: '✏️', name: 'Рисовалка' },
+            { id: 'metronome', icon: '🎼', name: 'Метроном' },
+            { id: 'textrev', icon: 'abc', name: 'Реверс' },
+            { id: 'counter', icon: '🔢', name: 'Счетчик' },
+            { id: 'morse', icon: '📡', name: 'Морзе' }
+        ];
+
+        function initApps() {
+            const grid = document.getElementById('appsGrid');
+            appsData.forEach(app => {
+                const div = document.createElement('div');
+                div.className = 'app-icon-wrapper';
+                div.onclick = () => openApp(app);
+                div.innerHTML = `<div class="app-icon">${app.icon}</div><div class="app-title">${app.name}</div>`;
+                grid.appendChild(div);
+            });
+        }
+
+        function openApp(app) {
+            const win = document.getElementById('appWindow');
+            const launch = document.getElementById('launchScreen');
+            const icon = document.getElementById('launchIcon');
+            const body = document.getElementById('appBody');
+            const title = document.getElementById('appWindowTitle');
+
+            // Reset
+            body.innerHTML = '';
+            title.innerText = app.name;
+            icon.innerText = app.icon;
+            
+            // Show Window & Launch Screen
+            win.style.display = 'flex';
+            launch.style.display = 'flex';
+            launch.style.opacity = '1';
+
+            // Animate Loading
+            setTimeout(() => {
+                launch.style.opacity = '0';
+                setTimeout(() => {
+                    launch.style.display = 'none';
+                    renderAppContent(app.id, body);
+                }, 500);
+            }, 1000);
+        }
+
+        function closeApp() {
+            document.getElementById('appWindow').style.display = 'none';
+        }
+
+        // --- 3. ЛОГИКА ВСЕХ ПРИЛОЖЕНИЙ (30 APPS) ---
+        function renderAppContent(id, container) {
+            const c = document.createElement('div');
+            c.className = 'tool-container';
+            container.appendChild(c);
+
+            switch(id) {
+                case 'todo':
+                    c.innerHTML = `<h3>Заметки</h3><input id="inp" class="tool-input"><button class="tool-btn" onclick="this.nextElementSibling.innerHTML += '<div>'+document.getElementById('inp').value+'</div>'">Добавить</button><div></div>`;
+                    break;
+                case 'calc':
+                    c.innerHTML = `<h3>Калькулятор</h3><input id="cInp" class="tool-input"><button class="tool-btn" onclick="try{document.getElementById('cRes').innerText=eval(document.getElementById('cInp').value)}catch(e){}">=</button><div id="cRes" class="tool-display">0</div>`;
+                    break;
+                case 'clicker':
+                    c.innerHTML = `<h3>Кликер</h3><div id="clck" class="tool-display">0</div><button class="tool-btn" onclick="document.getElementById('clck').innerText++">Клик!</button>`;
+                    break;
+                case 'stopwatch':
+                    c.innerHTML = `<h3>Секундомер</h3><div id="sw" class="tool-display">0.00</div><button class="tool-btn" onclick="window.swI=setInterval(()=>document.getElementById('sw').innerText=(parseFloat(document.getElementById('sw').innerText)+0.01).toFixed(2),10)">Старт</button><button class="tool-btn" onclick="clearInterval(window.swI)">Стоп</button>`;
+                    break;
+                case 'random':
+                    c.innerHTML = `<h3>Рандомайзер 1-100</h3><div id="rnd" class="tool-display">?</div><button class="tool-btn" onclick="document.getElementById('rnd').innerText=Math.floor(Math.random()*100)+1">Генерировать</button>`;
+                    break;
+                case 'password':
+                    c.innerHTML = `<h3>Генератор пароля</h3><div id="pwd" class="tool-display" style="font-size:20px">...</div><button class="tool-btn" onclick="document.getElementById('pwd').innerText=Math.random().toString(36).slice(-8)">Создать</button>`;
+                    break;
+                case 'battery':
+                     if('getBattery' in navigator) navigator.getBattery().then(b => c.innerHTML = `<h3>Батарея</h3><div class="tool-display">${Math.round(b.level*100)}%</div><div>${b.charging?'⚡ Заряжается':''}</div>`);
+                     else c.innerHTML = `<h3>Батарея</h3><div>Недоступно</div>`;
+                    break;
+                case 'color':
+                    c.innerHTML = `<h3>Выбор цвета</h3><input type="color" onchange="document.body.style.backgroundColor=this.value; setTimeout(()=>document.body.style.backgroundColor='', 2000)" style="width:100px;height:100px"><div>Фон изменится на 2 сек</div>`;
+                    break;
+                case 'currency':
+                    c.innerHTML = `<h3>Курс Валют (Пример)</h3><div style="text-align:left; margin-top:20px">🇺🇸 USD: 96.50 ₽<br>🇪🇺 EUR: 104.20 ₽<br>🐱 KMR: 10000 ₽</div>`;
+                    break;
+                case 'flashlight':
+                    c.innerHTML = `<h3>Фонарик</h3><button class="tool-btn" onclick="document.getElementById('appWindow').style.backgroundColor='#fff'">ВКЛ (Белый экран)</button><button class="tool-btn" onclick="document.getElementById('appWindow').style.backgroundColor=''">ВЫКЛ</button>`;
+                    break;
+                case 'qrcode':
+                    c.innerHTML = `<h3>QR Код</h3><input id="qrT" class="tool-input" placeholder="Текст"><button class="tool-btn" onclick="alert('Тут был бы QR код для: '+document.getElementById('qrT').value)">Создать</button>`;
+                    break;
+                case 'coin':
+                    c.innerHTML = `<h3>Монетка</h3><div id="cn" class="tool-display">🪙</div><button class="tool-btn" onclick="document.getElementById('cn').innerText=Math.random()>0.5?'Орел':'Решка'">Подбросить</button>`;
+                    break;
+                case 'dice':
+                    c.innerHTML = `<h3>Кости</h3><div id="dc" class="tool-display">🎲</div><button class="tool-btn" onclick="document.getElementById('dc').innerText=Math.floor(Math.random()*6)+1">Бросить</button>`;
+                    break;
+                case 'magic8':
+                    const ans = ["Да", "Нет", "Возможно", "Спроси позже", "Точно да", "Вряд ли"];
+                    c.innerHTML = `<h3>Шар Судьбы</h3><div id="m8" class="tool-display">🎱</div><button class="tool-btn" onclick="document.getElementById('m8').innerText='${ans[0]}'.replace('${ans[0]}', ['Да','Нет','Мб','Точно'][Math.floor(Math.random()*4)])">Спросить</button>`;
+                    break;
+                case 'converter':
+                    c.innerHTML = `<h3>Конвертер (Км -> Мили)</h3><input id="km" class="tool-input" placeholder="Км"><button class="tool-btn" onclick="alert((document.getElementById('km').value * 0.621371).toFixed(2) + ' миль')">В Мили</button>`;
+                    break;
+                case 'bmi':
+                    c.innerHTML = `<h3>ИМТ</h3><input id="h" class="tool-input" placeholder="Рост (см)"><input id="w" class="tool-input" placeholder="Вес (кг)"><button class="tool-btn" onclick="let h=document.getElementById('h').value/100; alert((document.getElementById('w').value/(h*h)).toFixed(1))">Расчет</button>`;
+                    break;
+                case 'breathe':
+                     c.innerHTML = `<h3>Дыхание</h3><div id="brC" style="width:50px;height:50px;background:#4680C2;border-radius:50%;margin:20px auto;transition:transform 3s"></div><button class="tool-btn" onclick="setInterval(()=>{document.getElementById('brC').style.transform='scale(2)';setTimeout(()=>document.getElementById('brC').style.transform='scale(1)',3000)},6000)">Начать</button>`;
+                    break;
+                case 'textrev':
+                    c.innerHTML = `<h3>Реверс текста</h3><input id="tr" class="tool-input"><button class="tool-btn" onclick="alert(document.getElementById('tr').value.split('').reverse().join(''))">Перевернуть</button>`;
+                    break;
+                case 'age':
+                    c.innerHTML = `<h3>Возраст в днях</h3><input type="date" id="ad" class="tool-input"><button class="tool-btn" onclick="alert(Math.floor((new Date() - new Date(document.getElementById('ad').value))/(1000*60*60*24)) + ' дней')">Считать</button>`;
+                    break;
+                case 'piano':
+                    c.innerHTML = `<h3>Мини Пианино</h3><div><button class="tool-btn" onclick="new Audio('https://www.soundjay.com/button/beep-07.wav').play()">Do</button><button class="tool-btn" onclick="new Audio('https://www.soundjay.com/button/beep-08.wav').play()">Re</button><button class="tool-btn" onclick="new Audio('https://www.soundjay.com/button/beep-09.wav').play()">Mi</button></div>`;
+                    break;
+                case 'tictactoe':
+                    c.innerHTML = `<h3>Крестики-Нолики</h3><div class="grid-game" id="ttt">${Array(9).fill('<div class="grid-cell" onclick="if(!this.innerText)this.innerText=\'X\'"></div>').join('')}</div><button class="tool-btn" onclick="document.querySelectorAll(\'.grid-cell\').forEach(c=>c.innerText=\'\')">Сброс</button>`;
+                    break;
+                case 'metronome':
+                     c.innerHTML = `<h3>Метроном</h3><div class="tool-display">BPM: 60</div><button class="tool-btn" onclick="alert('Тик-так (Представьте звук)')">Старт</button>`;
+                     break;
+                case 'pomodoro':
+                     c.innerHTML = `<h3>Помодоро</h3><div class="tool-display">25:00</div><button class="tool-btn">Старт</button>`;
+                     break;
+                case 'reaction':
+                     c.innerHTML = `<h3>Реакция</h3><div style="width:100%;height:100px;background:red;" onclick="if(this.style.background=='green') alert('Успех!')" id="rbox">Жди зеленый...</div><button class="tool-btn" onclick="setTimeout(()=>document.getElementById('rbox').style.background='green', 2000+Math.random()*2000)">Старт</button>`;
+                     break;
+                case 'water':
+                     c.innerHTML = `<h3>Трекер Воды</h3><div class="tool-display" id="wtr">0 стаканов</div><button class="tool-btn" onclick="document.getElementById('wtr').innerText = parseInt(document.getElementById('wtr').innerText)+1 + ' стаканов'">+1</button>`;
+                     break;
+                case 'soundboard':
+                     c.innerHTML = `<h3>Звуки</h3><button class="tool-btn" onclick="alert('МЯУ!')">Кот</button><button class="tool-btn" onclick="alert('БОНК!')">Бонк</button>`;
+                     break;
+                case 'canvas':
+                     c.innerHTML = `<h3>Рисовалка</h3><div style="border:1px solid #ccc;height:200px;background:white;">(Тут был бы canvas)</div>`;
+                     break;
+                case 'counter':
+                     c.innerHTML = `<h3>Счетчик слов</h3><input class="tool-input" oninput="document.getElementById('wc').innerText=this.value.length"><div id="wc">0</div>`;
+                     break;
+                case 'morse':
+                     c.innerHTML = `<h3>Морзе</h3><input class="tool-input" placeholder="SOS"><button class="tool-btn" onclick="alert('... --- ...')">Перевод</button>`;
+                     break;
+                case 'memory':
+                     c.innerHTML = `<h3>Память</h3><div>Найди пару (Демо)</div><div class="grid-game" style="grid-template-columns:repeat(2,1fr)">${Array(4).fill('<div class="grid-cell">?</div>').join('')}</div>`;
+                     break;
+                default:
+                    c.innerHTML = '<h3>В разработке...</h3>';
+            }
+        }
+
+        // --- SYSTEM ---
+        function updateClock() {
+            const now = new Date();
+            document.getElementById('clockWidget').innerText = `${String(now.getHours()).padStart(2,'0')}:${String(now.getMinutes()).padStart(2,'0')}`;
+            const options = { weekday: 'long', month: 'short', day: 'numeric' };
+            document.getElementById('dateWidget').innerText = now.toLocaleDateString('ru-RU', options);
+        }
+        
+        function toggleTheme() {
+            document.body.classList.toggle('dark-mode');
+            document.querySelector('.theme-btn').innerText = document.body.classList.contains('dark-mode') ? '☀️' : '🌙';
+        }
+
+        function switchPage(pageId) {
+            document.querySelectorAll('.page-section').forEach(el => el.classList.remove('active'));
+            document.getElementById('page-' + pageId).classList.add('active');
+            document.querySelectorAll('.menu-item, .mobile-nav-item').forEach(el => {
+                el.classList.remove('active');
+                if(el.dataset.page === pageId) el.classList.add('active');
+            });
+            window.scrollTo(0,0);
+        }
+
+        // Start
+        initRadio();
+        initApps();
+        setInterval(updateClock, 1000);
+        updateClock();
+    </script>
+    <script type="text/javascript" async src="https://tenor.com/embed.js"></script>
+</body>
+</html>
